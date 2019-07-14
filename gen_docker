@@ -1,5 +1,5 @@
 # coding=utf-8
-# __author__:"shirong.zhang"
+# __author__:"str1ng"
 import requests
 import os
 import time
