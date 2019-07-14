@@ -1,0 +1,37 @@
+# coding=utf-8
+# __author__:"shirong.zhang"
+import requests
+import os
+import time
+def gen_docker(start,end):
+    for i in range(start,end):
+        port1 = str(4000 + i)
+        port2 = str(4100-i)
+        Dockerfile_content = '''FROM alpine:3.7
+            EXPOSE %s %s
+            RUN apk --update add privoxy tor runit tini
+
+            COPY service /etc/service/
+
+            ENTRYPOINT ["tini", "--"]
+            CMD ["runsvdir", "/etc/service"]''' % (int(port1), int(port2))
+        privoxy_content = '''listen-address 0.0.0.0:%s
+            forward-socks5 / localhost:%s .'''% (port1, port2)
+        tor_content = '''SOCKSPort 0.0.0.0:%s'''% (port2)
+
+        path = os.getcwd()
+        print(path)
+        with open(path+"/Dockerfile", "w") as f:
+            f.write(Dockerfile_content)
+        with open(path+"/service/privoxy/config", "w") as f:
+            f.write(privoxy_content)
+        with open(path+"/service/tor/torrc", "w") as f:
+            f.write(tor_content)
+        os.system("docker build -t str1ng/tor_ip_pool%s .  "%str(i))
+        time.sleep(1)
+        os.system("docker run -d -p %s:%s -p %s:%s str1ng/tor_ip_pool%s" % (port1,port1,port2,port2,str(i)))
+
+if __name__ == "__main__":
+    gen_docker(7, 8)
+
+
